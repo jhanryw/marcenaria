@@ -1,0 +1,48 @@
+# Dependências e saídas de build (são geradas dentro da imagem)
+node_modules
+.next
+out
+dist
+build
+coverage
+*.tsbuildinfo
+
+# Controle de versão e ferramentas locais
+.git
+.gitignore
+.gitattributes
+.claude
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Testes e relatórios (não são necessários para gerar o site)
+tests
+tests-e2e
+test-results
+playwright-report
+vitest.config.*
+playwright.config.*
+
+# Logs e temporários
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.tmp
+*.swp
+.cache
+tmp
+
+# Segredos e variáveis locais (o app não usa nenhuma; evita vazar por engano)
+.env
+.env.*
+!.env.example
+
+# Arquivos do próprio Docker e documentação
+Dockerfile*
+docker-compose*
+.dockerignore
+README.md
+AGENTS.md

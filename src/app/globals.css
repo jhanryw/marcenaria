@@ -1,26 +1,96 @@
 @import "tailwindcss";
 
+/* Tema: fundo claro neutro + verde-escuro. Tokens usados pelos componentes (estilo shadcn/ui). */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f4f4f0;
+  --foreground: #1a1f1b;
+  --card: #ffffff;
+  --card-foreground: #1a1f1b;
+  --primary: #1f4a3a;
+  --primary-hover: #183b2e;
+  --primary-foreground: #ffffff;
+  --secondary: #e6efe9;
+  --secondary-foreground: #1f4a3a;
+  --muted: #ecece6;
+  --muted-foreground: #626962;
+  --accent: #dcebe2;
+  --border: #dcddd5;
+  --input: #cfd1c8;
+  --ring: #2f7a5c;
+  --destructive: #b3261e;
+  --destructive-soft: #fbeceb;
+  --warning: #8a5a00;
+  --warning-soft: #fdf3dc;
+  --success: #1f6b45;
+  --success-soft: #e3f3e9;
+  --radius: 1rem;
+  --nav-h: 64px;
+  color-scheme: light;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --color-destructive-soft: var(--destructive-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  /* sem rolagem horizontal em nenhuma tela */
+  overflow-x: hidden;
+  overscroll-behavior-y: none;
+}
+
+/* Campos ≥16px evitam o zoom automático do iOS ao focar */
+input, select, textarea { font-size: 16px; }
+
+:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+/* Áreas seguras (notch / barra de gestos) */
+.safe-top { padding-top: env(safe-area-inset-top); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+.safe-x { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+
+/* Números alinhados em colunas */
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* Esconde setinhas de input number */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+@keyframes sheet-up { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.animate-sheet-up { animation: sheet-up 0.2s ease-out; }
+.animate-fade-in { animation: fade-in 0.15s ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-sheet-up, .animate-fade-in { animation: none; }
 }

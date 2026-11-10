@@ -1,69 +1,149 @@
-import Image from "next/image";
+"use client";
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Download, FileText, FolderOpen, Hammer, Plus, ShieldAlert, Smartphone } from "lucide-react";
+import { useProjects, useSettings } from "@/hooks/use-data";
+import { createProject } from "@/db/repository";
+import { calculateProject } from "@/engine/project-calc";
+import { formatBRL } from "@/lib/money";
+import { daysSince } from "@/lib/format-date";
+import { PageContainer, PageHeader, SectionTitle, EmptyState } from "@/components/page-header";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { ProjectCard } from "@/components/project-card";
+import { usePwa } from "@/components/pwa-provider";
 
-export default function Home() {
+export default function HomePage() {
+  const router = useRouter();
+  const projects = useProjects();
+  const settings = useSettings();
+  const pwa = usePwa();
+
+  const stats = React.useMemo(() => {
+    const list = projects ?? [];
+    const active = list.filter((p) => p.status !== "cancelado" && p.status !== "concluido");
+    const pipeline = active
+      .filter((p) => p.status === "orcado" || p.status === "aprovado" || p.status === "em_producao")
+      .reduce((a, p) => a + calculateProject(p).finance.finalPriceCents, 0);
+    return { total: list.length, active: active.length, pipeline };
+  }, [projects]);
+
+  const recent = React.useMemo(
+    () => [...(projects ?? [])].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 4),
+    [projects],
+  );
+
+  const backupDays = settings ? daysSince(settings.lastBackupAt) : null;
+  const needsBackup = (projects?.length ?? 0) > 0 && settings && (backupDays === null || backupDays >= 7);
+
+  async function onNew() {
+    const p = await createProject();
+    router.push(`/projeto/?id=${encodeURIComponent(p.id)}`);
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <>
+      <PageHeader
+        title={settings?.companyName ? settings.companyName : "Marcenaria"}
+        subtitle="Orçamentos de móveis planejados"
+        actions={
+          <Button size="sm" onClick={onNew}>
+            <Plus /> Novo
+          </Button>
+        }
+      />
+      <PageContainer className="space-y-4">
+        <div className="grid grid-cols-3 gap-3">
+          <Card className="p-3">
+            <div className="text-2xl font-bold text-primary tabular">{stats.total}</div>
+            <div className="text-xs text-muted-foreground">projetos</div>
+          </Card>
+          <Card className="p-3">
+            <div className="text-2xl font-bold text-primary tabular">{stats.active}</div>
+            <div className="text-xs text-muted-foreground">em andamento</div>
+          </Card>
+          <Card className="p-3">
+            <div className="truncate text-lg font-bold leading-8 text-primary tabular">{formatBRL(stats.pipeline)}</div>
+            <div className="text-xs text-muted-foreground">em negociação</div>
+          </Card>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        {needsBackup && (
+          <Card className="flex items-start gap-3 border-warning/30 bg-warning-soft p-4">
+            <ShieldAlert className="mt-0.5 size-5 shrink-0 text-warning" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-warning">
+                {backupDays === null ? "Você ainda não fez backup." : `Último backup há ${backupDays} dias.`}
+              </p>
+              <p className="mt-0.5 text-sm text-warning/90">
+                Os orçamentos ficam só neste aparelho. Limpar os dados do navegador ou remover o app apaga tudo.
+              </p>
+              <Button asChild size="sm" variant="outline" className="mt-2">
+                <Link href="/configuracoes/#backup">
+                  <Download /> Fazer backup agora
+                </Link>
+              </Button>
+            </div>
+          </Card>
+        )}
+
+        {pwa.canInstall && !pwa.isStandalone && (
+          <Card className="flex items-center gap-3 p-4">
+            <Smartphone className="size-6 shrink-0 text-primary" />
+            <p className="flex-1 text-sm">Instale o app na tela inicial para abrir como aplicativo, mesmo sem internet.</p>
+            <Button size="sm" onClick={() => pwa.promptInstall()}>
+              Instalar
+            </Button>
+          </Card>
+        )}
+
+        <div>
+          <SectionTitle
+            action={
+              <Link href="/projetos/" className="text-sm font-semibold text-primary">
+                Ver todos
+              </Link>
+            }
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+            Recentes
+          </SectionTitle>
+          {projects === undefined ? (
+            <div className="h-24 animate-pulse rounded-2xl bg-muted" />
+          ) : recent.length === 0 ? (
+            <EmptyState
+              icon={<Hammer />}
+              title="Crie seu primeiro orçamento"
+              description="Cadastre as peças do móvel e descubra quantas chapas de MDF comprar, o custo e o preço de venda."
+              action={
+                <Button onClick={onNew}>
+                  <Plus /> Novo projeto
+                </Button>
+              }
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          ) : (
+            <div className="grid gap-3 md:grid-cols-2">
+              {recent.map((p) => (
+                <ProjectCard key={p.id} project={p} />
+              ))}
+            </div>
+          )}
         </div>
-      </main>
-    </div>
+
+        <Button asChild variant="outline" className="w-full">
+          <Link href="/contratos/">
+            <FileText /> Contratos
+          </Link>
+        </Button>
+
+        {recent.length > 0 && (
+          <Button asChild variant="outline" className="w-full">
+            <Link href="/projetos/">
+              <FolderOpen /> Todos os projetos
+            </Link>
+          </Button>
+        )}
+      </PageContainer>
+    </>
   );
 }
