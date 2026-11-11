@@ -21,10 +21,22 @@ export function Field({
   className?: string;
   children: React.ReactNode;
 }) {
+  // Sem htmlFor explícito, vincula o rótulo ao campo (único filho) com um id gerado: acessibilidade e toque no rótulo.
+  const autoId = React.useId();
+  let control = children;
+  let forId = htmlFor;
+  if (!forId && label && React.isValidElement(children)) {
+    const props = children.props as { id?: string };
+    if (props.id) forId = props.id;
+    else {
+      forId = autoId;
+      control = React.cloneElement(children as React.ReactElement<{ id?: string }>, { id: autoId });
+    }
+  }
   return (
     <div className={cn("flex min-w-0 flex-col gap-1.5", className)}>
-      {label && <Label htmlFor={htmlFor}>{label}</Label>}
-      {children}
+      {label && <Label htmlFor={forId}>{label}</Label>}
+      {control}
       {error ? (
         <p className="text-xs font-medium text-destructive" role="alert">
           {error}

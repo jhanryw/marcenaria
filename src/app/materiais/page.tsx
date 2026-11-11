@@ -6,6 +6,7 @@ import { deleteEdgeTape, deleteSheetMaterial, saveEdgeTape, saveSheetMaterial } 
 import { newEdgeTape, newSheetMaterial } from "@/domain/defaults";
 import type { EdgeTape, SheetMaterial } from "@/domain/schema";
 import { formatBRL, formatNumber } from "@/lib/money";
+import { formatCm } from "@/lib/units";
 import { PageContainer, PageHeader, EmptyState } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -114,7 +115,7 @@ export default function MaterialsPage() {
                     <div className="mt-3 flex flex-wrap gap-1.5">
                       <Badge>{formatNumber(m.thicknessMm)} mm</Badge>
                       <Badge>
-                        {formatNumber(m.lengthMm, 0)} × {formatNumber(m.widthMm, 0)} mm
+                        {formatCm(m.lengthMm)} × {formatCm(m.widthMm)} cm
                       </Badge>
                       <Badge>margem {formatNumber(m.marginMm)} mm</Badge>
                       <Badge>serra {formatNumber(m.kerfMm)} mm</Badge>

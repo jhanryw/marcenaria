@@ -231,6 +231,7 @@ export function CutViewer({
 
       <SheetSvg result={result} sheet={sheet} labels={labels} order={order} />
 
+      <p className="text-xs font-semibold text-muted-foreground">Medidas do plano de corte em milímetros (mm).</p>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5">
           <i className="inline-block size-3 rounded-sm border border-[#1f4a3a] bg-[#cfe3d6]" /> peça

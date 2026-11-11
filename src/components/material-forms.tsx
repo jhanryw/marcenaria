@@ -8,6 +8,7 @@ import { Dialog, DialogBody, DialogContent, DialogFooter } from "@/components/ui
 import { Field } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { MoneyInput, NumberInput } from "@/components/ui/number-input";
+import { CmInput } from "@/components/ui/length-input";
 import { Switch } from "@/components/ui/switch";
 
 function errorsOf(schema: z.ZodType, value: unknown): Record<string, string> {
@@ -65,24 +66,24 @@ export function SheetMaterialDialog({
             </Field>
           </div>
           <div className="grid grid-cols-3 gap-3">
-            <Field label="Espessura" error={err("thicknessMm")}>
+            <Field label="Espessura do MDF (mm)" error={err("thicknessMm")}>
               <NumberInput value={m.thicknessMm} onChange={(v) => set("thicknessMm", v ?? 0)} suffix="mm" />
             </Field>
-            <Field label="Comprimento" error={err("lengthMm")}>
-              <NumberInput value={m.lengthMm} onChange={(v) => set("lengthMm", v ?? 0)} suffix="mm" />
+            <Field label="Comprimento da chapa (cm)" error={err("lengthMm")}>
+              <CmInput mm={m.lengthMm} onChangeMm={(v) => set("lengthMm", v ?? 0)} placeholder="275" />
             </Field>
-            <Field label="Largura" error={err("widthMm")}>
-              <NumberInput value={m.widthMm} onChange={(v) => set("widthMm", v ?? 0)} suffix="mm" />
+            <Field label="Largura da chapa (cm)" error={err("widthMm")}>
+              <CmInput mm={m.widthMm} onChangeMm={(v) => set("widthMm", v ?? 0)} placeholder="185" />
             </Field>
           </div>
           <Field label="Preço por chapa" error={err("priceCents")}>
             <MoneyInput cents={m.priceCents} onChange={(v) => set("priceCents", v ?? 0)} />
           </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Margem nas extremidades" hint="Refilo de cada borda da chapa" error={err("marginMm")}>
+            <Field label="Margem nas extremidades (mm)" hint="Refilo de cada borda da chapa" error={err("marginMm")}>
               <NumberInput value={m.marginMm} onChange={(v) => set("marginMm", v ?? 0)} suffix="mm" />
             </Field>
-            <Field label="Espessura do corte (serra)" hint="Perda em cada corte" error={err("kerfMm")}>
+            <Field label="Espessura do corte da serra (mm)" hint="Perda em cada corte" error={err("kerfMm")}>
               <NumberInput value={m.kerfMm} onChange={(v) => set("kerfMm", v ?? 0)} suffix="mm" />
             </Field>
           </div>
@@ -150,10 +151,10 @@ export function EdgeTapeDialog({
             <Input value={t.color} onChange={(e) => set("color", e.target.value)} placeholder="Ex.: Branco" />
           </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Largura" error={err("widthMm")}>
+            <Field label="Largura da fita (mm)" error={err("widthMm")}>
               <NumberInput value={t.widthMm} onChange={(v) => set("widthMm", v ?? 0)} suffix="mm" />
             </Field>
-            <Field label="Espessura" error={err("thicknessMm")}>
+            <Field label="Espessura da fita (mm)" error={err("thicknessMm")}>
               <NumberInput value={t.thicknessMm} onChange={(v) => set("thicknessMm", v ?? 0)} suffix="mm" />
             </Field>
           </div>

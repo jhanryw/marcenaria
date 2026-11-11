@@ -1,7 +1,7 @@
 /**
  * Geração do PDF do contrato, 100% no navegador (pdf-lib + fontkit), sem rede e sem servidor.
  */
-import { PDFDocument, StandardFonts, degrees, rgb, type PDFFont, type PDFImage } from "pdf-lib";
+import { PDFDocument, type PDFFont, type PDFImage } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import type { Contract, ContractContent, ResolvedClause } from "@/domain/schema";
 import { buildDocumentBlocks } from "../document";
@@ -10,6 +10,7 @@ import { isoToLocalDate, todayISO } from "../dates";
 import { companyDisplayName, resolveClauses } from "../template";
 import type { FontBytes } from "./fonts";
 import { dataUrlToBytes, imageSize } from "./image";
+import { drawOps } from "./render-ops";
 import {
   COLORS,
   layoutDocument,
@@ -17,7 +18,6 @@ import {
   type LaidOutDocument,
   type LayoutFonts,
   type LogoInfo,
-  type Op,
 } from "./layout";
 
 export interface RenderInput {
@@ -53,7 +53,7 @@ export interface FontSet {
   fonts: LayoutFonts;
 }
 
-async function prepareDoc(fontBytes: FontBytes): Promise<{ doc: PDFDocument; set: FontSet }> {
+export async function prepareDoc(fontBytes: FontBytes): Promise<{ doc: PDFDocument; set: FontSet }> {
   const doc = await PDFDocument.create();
   doc.registerFontkit(fontkit);
   const entries = await Promise.all(
@@ -102,11 +102,6 @@ export async function layoutContract(input: RenderInput, fontBytes: FontBytes): 
   return layoutWith(input, set.fonts);
 }
 
-const hex = (h: string) => {
-  const n = parseInt(h.slice(1), 16);
-  return rgb(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255);
-};
-
 export interface GeneratedPdf {
   bytes: Uint8Array;
   layout: LaidOutDocument;
@@ -140,74 +135,10 @@ export async function generateContractPdf(input: RenderInput, fontBytes: FontByt
     }
   };
 
-  void StandardFonts;
+  const env = { pdfFonts: set.pdfFonts, pageWidth: layout.pageWidth, pageHeight: layout.pageHeight, getImage };
   for (const pageLayout of layout.pages) {
     const page = doc.addPage([layout.pageWidth, layout.pageHeight]);
-    const H = layout.pageHeight;
-    for (const op of pageLayout.ops) await drawOp(page, op, H);
-  }
-
-  async function drawOp(page: ReturnType<PDFDocument["addPage"]>, op: Op, H: number) {
-    switch (op.t) {
-      case "line":
-        page.drawLine({ start: { x: op.x1, y: H - op.y1 }, end: { x: op.x2, y: H - op.y2 }, thickness: op.width, color: hex(op.color) });
-        break;
-      case "rect":
-        page.drawRectangle({
-          x: op.x,
-          y: H - op.y - op.h,
-          width: op.w,
-          height: op.h,
-          color: op.fill ? hex(op.fill) : undefined,
-          borderColor: op.stroke ? hex(op.stroke) : undefined,
-          borderWidth: op.stroke ? (op.strokeWidth ?? 0.6) : 0,
-        });
-        break;
-      case "image": {
-        const img = await getImage(op.dataUrl);
-        if (img) page.drawImage(img, { x: op.x, y: H - op.y - op.h, width: op.w, height: op.h });
-        break;
-      }
-      case "watermark": {
-        const size = 120;
-        const f = set.pdfFonts.sansBold;
-        const tw = f.widthOfTextAtSize(op.text, size);
-        const th = size * 0.72;
-        const ang = (45 * Math.PI) / 180;
-        const cx = layout.pageWidth / 2;
-        const cy = H / 2;
-        page.drawText(op.text, {
-          x: cx - (tw / 2) * Math.cos(ang) + (th / 2) * Math.sin(ang),
-          y: cy - (tw / 2) * Math.sin(ang) - (th / 2) * Math.cos(ang),
-          size,
-          font: f,
-          color: rgb(0.82, 0.84, 0.82),
-          opacity: 0.35,
-          rotate: degrees(45),
-        });
-        break;
-      }
-      case "text": {
-        const font = set.pdfFonts[op.font];
-        const y = H - op.y;
-        const color = hex(op.color);
-        if (op.justify && op.text.includes(" ")) {
-          const words = op.text.split(" ");
-          const natural = words.reduce((a, w) => a + font.widthOfTextAtSize(w, op.size), 0);
-          const gap = (op.width - natural) / (words.length - 1);
-          let x = op.x;
-          for (const w of words) {
-            if (w) page.drawText(w, { x, y, size: op.size, font, color });
-            x += font.widthOfTextAtSize(w, op.size) + gap;
-          }
-          break;
-        }
-        const tw = font.widthOfTextAtSize(op.text, op.size);
-        const x = op.align === "center" ? op.x + (op.width - tw) / 2 : op.align === "right" ? op.x + op.width - tw : op.x;
-        if (op.text) page.drawText(op.text, { x, y, size: op.size, font, color });
-        break;
-      }
-    }
+    await drawOps(page, pageLayout.ops, env);
   }
 
   const bytes = await doc.save();

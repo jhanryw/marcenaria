@@ -9,6 +9,7 @@ import type { ProjectCalculation } from "@/engine/project-calc";
 import { withMaterialSnapshot, withTapeSnapshot, refreshMaterialSnapshot } from "@/db/repository";
 import { formatBRL, formatM2, formatMeters, formatNumber } from "@/lib/money";
 import { newId } from "@/lib/utils";
+import { formatCm, formatCmPair } from "@/lib/units";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -175,7 +176,7 @@ export function PiecesTab({ project, calc, catalogMaterials, catalogTapes, updat
                   <div className="min-w-0">
                     <div className="truncate font-semibold">{m.name}</div>
                     <div className="text-xs text-muted-foreground">
-                      {formatNumber(m.thicknessMm)} mm · {formatNumber(m.lengthMm, 0)}×{formatNumber(m.widthMm, 0)} mm · serra {formatNumber(m.kerfMm)} mm · margem{" "}
+                      {formatNumber(m.thicknessMm)} mm · {formatCm(m.lengthMm)} × {formatCm(m.widthMm)} cm · serra {formatNumber(m.kerfMm)} mm · margem{" "}
                       {formatNumber(m.marginMm)} mm
                     </div>
                   </div>
@@ -251,7 +252,7 @@ export function PiecesTab({ project, calc, catalogMaterials, catalogTapes, updat
                           {p.description}
                         </div>
                         <div className="text-sm text-muted-foreground tabular">
-                          {formatNumber(p.lengthMm, 1)} × {formatNumber(p.widthMm, 1)} mm
+                          {formatCm(p.lengthMm)} × {formatCm(p.widthMm)} cm
                         </div>
                       </div>
                       <div className="shrink-0 rounded-full bg-primary px-2.5 py-1 text-sm font-bold text-primary-foreground tabular">{p.quantity}×</div>
@@ -285,7 +286,7 @@ export function PiecesTab({ project, calc, catalogMaterials, catalogTapes, updat
               <thead className="bg-muted text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 <tr>
                   <th className="w-[26%] px-3 py-2">Peça</th>
-                  <th className="w-[16%] px-3 py-2">Medidas (C × L)</th>
+                  <th className="w-[16%] px-3 py-2">Medidas (C × L, cm)</th>
                   <th className="w-[7%] px-3 py-2 text-right">Qtd</th>
                   <th className="w-[20%] px-3 py-2">Material</th>
                   <th className="w-[11%] px-3 py-2 text-right">Área</th>
@@ -305,7 +306,7 @@ export function PiecesTab({ project, calc, catalogMaterials, catalogTapes, updat
                         </button>
                       </td>
                       <td className="px-3 py-2 tabular">
-                        {formatNumber(p.lengthMm, 1)} × {formatNumber(p.widthMm, 1)}
+                        {formatCmPair(p.lengthMm, p.widthMm)}
                       </td>
                       <td className="px-3 py-2 text-right font-semibold tabular">{p.quantity}</td>
                       <td className="break-words px-3 py-2">{matName(p.materialId)}</td>
@@ -390,7 +391,7 @@ export function PiecesTab({ project, calc, catalogMaterials, catalogTapes, updat
                         <span className="min-w-0">
                           <span className="block truncate font-semibold">{m.name}</span>
                           <span className="block text-xs text-muted-foreground">
-                            {formatNumber(m.thicknessMm)} mm · {formatNumber(m.lengthMm, 0)}×{formatNumber(m.widthMm, 0)} mm
+                            {formatNumber(m.thicknessMm)} mm · {formatCm(m.lengthMm)} × {formatCm(m.widthMm)} cm
                           </span>
                         </span>
                         <span className="shrink-0 font-bold text-primary tabular">{formatBRL(m.priceCents)}</span>

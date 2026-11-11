@@ -42,6 +42,7 @@ import { Card } from "@/components/ui/card";
 import { Field } from "@/components/ui/label";
 import { Input, Select } from "@/components/ui/input";
 import { MoneyInput, NumberInput } from "@/components/ui/number-input";
+import { CmInput } from "@/components/ui/length-input";
 import { Dialog, DialogBody, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { useConfirm } from "@/components/ui/confirm";
 import { useToast } from "@/components/ui/toast";
@@ -357,21 +358,21 @@ export default function SettingsPage() {
         <SectionTitle>Padrões de chapa e fita</SectionTitle>
         <Card className="space-y-4 p-4">
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Comprimento da chapa">
-              <NumberInput value={s.defaultSheetLengthMm} onChange={(v) => update({ defaultSheetLengthMm: v ?? 0 })} suffix="mm" />
+            <Field label="Comprimento da chapa (cm)">
+              <CmInput mm={s.defaultSheetLengthMm} onChangeMm={(v) => update({ defaultSheetLengthMm: v ?? 0 })} placeholder="275" />
             </Field>
-            <Field label="Largura da chapa">
-              <NumberInput value={s.defaultSheetWidthMm} onChange={(v) => update({ defaultSheetWidthMm: v ?? 0 })} suffix="mm" />
+            <Field label="Largura da chapa (cm)">
+              <CmInput mm={s.defaultSheetWidthMm} onChangeMm={(v) => update({ defaultSheetWidthMm: v ?? 0 })} placeholder="185" />
             </Field>
           </div>
           <Field label="Preço por chapa (novos materiais)">
             <MoneyInput cents={s.defaultSheetPriceCents} onChange={(v) => update({ defaultSheetPriceCents: v ?? 0 })} />
           </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Margem nas extremidades">
+            <Field label="Margem nas extremidades (mm)">
               <NumberInput value={s.defaultMarginMm} onChange={(v) => update({ defaultMarginMm: v ?? 0 })} suffix="mm" />
             </Field>
-            <Field label="Espessura da serra">
+            <Field label="Espessura da serra (mm)">
               <NumberInput value={s.defaultKerfMm} onChange={(v) => update({ defaultKerfMm: v ?? 0 })} suffix="mm" />
             </Field>
           </div>
@@ -386,11 +387,11 @@ export default function SettingsPage() {
             Uma sobra só é destacada como reaproveitável se tiver pelo menos estas medidas.
           </p>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Menor lado mínimo">
-              <NumberInput value={s.remnantMinShortMm} onChange={(v) => update({ remnantMinShortMm: v ?? 0 })} suffix="mm" />
+            <Field label="Menor lado mínimo (cm)">
+              <CmInput mm={s.remnantMinShortMm} onChangeMm={(v) => update({ remnantMinShortMm: v ?? 0 })} placeholder="30" />
             </Field>
-            <Field label="Maior lado mínimo">
-              <NumberInput value={s.remnantMinLongMm} onChange={(v) => update({ remnantMinLongMm: v ?? 0 })} suffix="mm" />
+            <Field label="Maior lado mínimo (cm)">
+              <CmInput mm={s.remnantMinLongMm} onChangeMm={(v) => update({ remnantMinLongMm: v ?? 0 })} placeholder="60" />
             </Field>
           </div>
         </Card>

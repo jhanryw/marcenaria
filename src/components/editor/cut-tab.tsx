@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { AlertTriangle, CheckCircle2, Info, Scissors } from "lucide-react";
+import { AlertTriangle, CheckCircle2, FileDown, Info, Scissors } from "lucide-react";
 import type { Project } from "@/domain/schema";
 import type { ProjectCalculation } from "@/engine/project-calc";
 import { formatBRL, formatM2, formatNumber, formatPercent } from "@/lib/money";
@@ -10,6 +10,9 @@ import { Select } from "@/components/ui/input";
 import { NumberInput } from "@/components/ui/number-input";
 import { EmptyState, SectionTitle } from "@/components/page-header";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { pieceCodes } from "@/export/model";
+import { ExportDialog } from "@/components/cut/export-dialog";
 import { CutViewer } from "./cut-viewer";
 
 function Stat({ label, value, hint, tone }: { label: string; value: React.ReactNode; hint?: string; tone?: "green" | "amber" }) {
@@ -34,14 +37,14 @@ export function CutTab({
   update: (fn: (p: Project) => Project) => void;
 }) {
   const [matId, setMatId] = React.useState<string | null>(null);
+  const [exportOpen, setExportOpen] = React.useState(false);
   const results = calc.cut.materials;
   const selected = results.find((r) => r.materialId === matId) ?? results[0];
 
   // rótulos curtos e cores estáveis por peça
   const labels = React.useMemo(() => {
-    const m = new Map<string, string>();
-    project.pieces.forEach((p, i) => m.set(p.id, p.ref.trim() || `P${i + 1}`));
-    return m;
+    // mesmos códigos únicos usados no PDF/CSV exportados para a madeireira
+    return pieceCodes(project.pieces);
   }, [project.pieces]);
   const order = React.useMemo(() => new Map(project.pieces.map((p, i) => [p.id, i])), [project.pieces]);
 
@@ -76,6 +79,17 @@ export function CutTab({
           </p>
         </div>
       )}
+
+      <Card className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0 text-sm">
+          <div className="font-semibold">Exportar para a madeireira</div>
+          <p className="text-muted-foreground">PDF do plano (A4 paisagem) e lista de peças em CSV, em milímetros, sem preços nem dados do cliente.</p>
+        </div>
+        <Button onClick={() => setExportOpen(true)} data-testid="export-open" className="shrink-0">
+          <FileDown /> Exportar plano de corte
+        </Button>
+      </Card>
+      <ExportDialog project={project} open={exportOpen} onOpenChange={setExportOpen} />
 
       {/* resumo geral */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">

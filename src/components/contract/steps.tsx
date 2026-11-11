@@ -187,8 +187,8 @@ export function ItemsStep({ content, update }: { content: ContractContent; updat
                 <Field label="Descrição" htmlFor={`it-desc-${it.id}`}>
                   <Textarea id={`it-desc-${it.id}`} value={it.description} onChange={(e) => setItem(it.id, { description: e.target.value })} placeholder="Guarda-roupa em MDF, com portas, gavetas e prateleiras." />
                 </Field>
-                <Field label="Dimensões externas (aproximadas ou finais)" htmlFor={`it-dim-${it.id}`}>
-                  <Input id={`it-dim-${it.id}`} value={it.dimensions} onChange={(e) => setItem(it.id, { dimensions: e.target.value })} placeholder="Ex.: 2,70 m (A) × 3,20 m (L) × 0,60 m (P)" />
+                <Field label="Dimensões externas em cm (aproximadas ou finais)" htmlFor={`it-dim-${it.id}`} hint="Use centímetros, ex.: 240 × 220 × 60 cm (largura × altura × profundidade).">
+                  <Input id={`it-dim-${it.id}`} value={it.dimensions} onChange={(e) => setItem(it.id, { dimensions: e.target.value })} placeholder="Ex.: 240 × 220 × 60 cm" />
                 </Field>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field label="MDF e acabamento" htmlFor={`it-mat-${it.id}`}>

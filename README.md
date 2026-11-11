@@ -22,7 +22,7 @@ npm start            # serve out/ em http://localhost:3000 para testar o build d
 
 ```bash
 npm run verify:out   # audita out/ (rotas, manifest, ícones, fontes, pré-cache do SW)
-npm test             # 138 testes unitários: corte, fita, financeiro, banco, backup, contratos e PDF
+npm test             # 195 testes unitários: corte, fita, financeiro, banco, backup, contratos, exportação e unidades
 npm run typecheck
 npm run lint
 npm run build && npm run test:e2e   # E2E (Playwright/Chromium) em 5 tamanhos de tela, offline, PWA, backup
@@ -119,6 +119,8 @@ src/engine/
   finance/      edge-banding.ts (fita), pricing.ts (custos, mão de obra, markup, margem)
   project-calc.ts, summary.ts   (composição e textos de resumo) — funções puras, sem UI
 src/db/         db.ts (Dexie v2), repository.ts, contracts.ts, backup.ts, migrations.ts, seed.ts
+src/lib/units.ts   conversão cm ↔ mm (única fonte da regra 1 cm = 10 mm)
+src/export/     exportação do plano de corte (modelo, validação, CSV, PDF paisagem)
 src/contracts/  módulo de contratos: modelo de cláusulas, parcelas, prazos, revisão, PDF (pdf/)
 src/components/ UI (ui/ = primitivos shadcn-style; editor/ = abas do orçamento)
 src/app/        /, /projetos, /projeto?id=, /projeto/resultado?id=, /materiais, /configuracoes
@@ -127,6 +129,47 @@ tests/          unitários (Vitest)      tests-e2e/   E2E (Playwright)
 ```
 
 
+
+
+## Unidades de medida: centímetros na tela, milímetros por dentro
+
+- **Interface**: comprimento e largura de **peças** e **chapas** (e o tamanho mínimo de sobras) são digitados e exibidos em **centímetros**
+  (275 × 185 cm). Aceita vírgula ou ponto (`60,5` e `60.5`) e abre o teclado numérico decimal no celular.
+  Espessura do MDF, espessura da serra, margem e medidas da fita continuam em **mm**, com a unidade escrita no rótulo.
+  Área segue em m², fita em metros, preços em R$.
+- **Dentro do app tudo é milímetro**: dados gravados no IndexedDB, motor de corte, posições, serra, margens, validação geométrica,
+  aproveitamento, exportações e backups. A conversão acontece só na digitação/exibição, **em um único módulo**
+  (`src/lib/units.ts`: `cmToMm`, `mmToCm`, `parseCmToMm`, `formatCm`) e no campo `CmInput`.
+  A conversão desloca a vírgula uma casa e só limpa o ruído de ponto flutuante na 6ª casa (1,1 cm = 11 mm exatos); ida e volta é exata.
+- **Dados antigos**: nenhuma migração e nenhuma multiplicação. Uma peça salva como 600 × 1800 mm aparece como 60 × 180 cm e, ao salvar de novo,
+  continua 600 × 1800 mm. Backups antigos e novos são idênticos em unidade (mm).
+- **Plano de corte em mm**: visualização 2D, medidas das peças e das chapas, PDF para a madeireira e CSV continuam em milímetros, com a unidade
+  identificada (cabeçalhos “(mm)”, “Medidas em milímetros”).
+- **Contratos**: o campo de dimensões dos móveis pede **centímetros** (ex.: `240 × 220 × 60 cm`). Contratos já emitidos e suas versões congeladas
+  não são alterados.
+
+## Exportar plano de corte para madeireira
+
+Na aba **Corte** do projeto: **Exportar plano de corte** abre “Exportar para madeireira”, com três saídas e **pré-visualização antes de baixar**:
+
+- **Plano completo (PDF, A4 paisagem)**: resumo (projeto/referência, aviso de estimativa heurística, materiais, cor/acabamento, espessura, tamanho da chapa,
+  margem, serra, veio, chapas por material); **uma página por chapa** com o desenho em escala (peças com código e medidas, ↻ peças giradas, seta do veio,
+  sobras reaproveitáveis numeradas e sobras pequenas hachuradas); **lista consolidada de peças** (código, medidas, quantidade, material, gira?, veio,
+  observações); **fita de borda em seção separada** (bordas por peça e total por tipo).
+- **Só lista de peças (PDF)** e **Lista de peças (CSV genérico)**: `;` como separador, UTF-8 com BOM, vírgula decimal, CRLF, medidas em mm.
+- **Compartilhar com a madeireira**: menu nativo do aparelho (WhatsApp, e-mail…) com o arquivo; sem suporte, baixa o arquivo.
+- **Desenho = cálculo**: usa as posições reais do motor de corte (`planProjectCutting`); nada é redesenhado.
+- **Validação antes de exportar**: validador geométrico do motor **+** conferência independente sobre o próprio modelo exportado (todas as peças
+  posicionadas na quantidade cadastrada, medidas iguais às do cadastro, dentro da área útil/margens, sem sobreposição respeitando a serra, rotação e
+  veio). Plano incompleto/inválido **bloqueia** o PDF do plano e mostra os problemas; a lista de peças continua exportável, com aviso explícito de
+  “plano não validado” no documento e no nome do arquivo.
+- **Privacidade**: o modelo é montado por lista branca. **Nunca** entram preços, custos, markup, lucro, preço de venda, CPF, nome/telefone do cliente,
+  descrição comercial ou observações do orçamento. O nome do projeto no documento é editável (para não expor o cliente); o contato da marcenaria só
+  entra se você marcar. Testado no modelo, no PDF e no CSV (inclusive ausência de “R$”).
+- **Offline**: tudo é gerado no navegador (pdf-lib + fontes pré-cacheadas), sem backend.
+- **Aviso**: todo PDF informa que o plano é **estimado por algoritmo heurístico, sujeito à validação técnica da madeireira antes da execução**.
+- **Exportadores específicos**: o CSV é **genérico** e não presume compatibilidade com nenhuma seccionadora. A arquitetura (`src/export/exporters.ts`,
+  `PartsListExporter` + `registerPartsExporter`) permite adicionar formatos próprios de cada equipamento/software sem mexer no motor ou no PDF.
 
 ## Fórmulas
 

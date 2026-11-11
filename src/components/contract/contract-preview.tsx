@@ -28,9 +28,9 @@ const FONT_CSS = (Object.keys(FAMILY) as FontKey[])
 function OpView({ op, w, h }: { op: Op; w: number; h: number }) {
   switch (op.t) {
     case "line":
-      return <line x1={op.x1} y1={op.y1} x2={op.x2} y2={op.y2} stroke={op.color} strokeWidth={op.width} />;
+      return <line x1={op.x1} y1={op.y1} x2={op.x2} y2={op.y2} stroke={op.color} strokeWidth={op.width} strokeDasharray={op.dash?.join(" ")} />;
     case "rect":
-      return <rect x={op.x} y={op.y} width={op.w} height={op.h} fill={op.fill ?? "none"} stroke={op.stroke} strokeWidth={op.strokeWidth} />;
+      return <rect x={op.x} y={op.y} width={op.w} height={op.h} fill={op.fill ?? "none"} stroke={op.stroke} strokeWidth={op.strokeWidth} strokeDasharray={op.dash?.join(" ")} data-tag={op.tag} />;
     case "image":
       return <image href={op.dataUrl} x={op.x} y={op.y} width={op.w} height={op.h} preserveAspectRatio="xMidYMid meet" />;
     case "watermark":
@@ -65,6 +65,7 @@ function OpView({ op, w, h }: { op: Op; w: number; h: number }) {
           fill={op.color}
           textAnchor={anchor}
           xmlSpace="preserve"
+          transform={op.rotate ? `rotate(${-op.rotate} ${x} ${op.y})` : undefined}
           {...(op.justify ? { textLength: op.width, lengthAdjust: "spacing" as const } : {})}
         >
           {op.text}
@@ -74,18 +75,30 @@ function OpView({ op, w, h }: { op: Op; w: number; h: number }) {
   }
 }
 
-export function PagesView({ layout }: { layout: LaidOutDocument }) {
+export function PagesView({
+  layout,
+  maxWidth = 794,
+  label = "do contrato",
+  testId = "contract",
+}: {
+  layout: LaidOutDocument;
+  /** Largura máxima de cada página na tela (px) */
+  maxWidth?: number;
+  label?: string;
+  testId?: string;
+}) {
   return (
-    <div className="space-y-4" data-testid="contract-pages">
+    <div className="space-y-4" data-testid={`${testId}-pages`}>
       <style>{FONT_CSS}</style>
       {layout.pages.map((p, i) => (
         <svg
           key={i}
           viewBox={`0 0 ${layout.pageWidth} ${layout.pageHeight}`}
           role="img"
-          aria-label={`Página ${i + 1} de ${layout.pages.length} do contrato`}
-          className="mx-auto block h-auto w-full max-w-[794px] rounded-sm bg-white shadow-[0_2px_12px_rgba(0,0,0,0.18)]"
-          data-testid="contract-page"
+          aria-label={`Página ${i + 1} de ${layout.pages.length} ${label}`}
+          className="mx-auto block h-auto w-full rounded-sm bg-white shadow-[0_2px_12px_rgba(0,0,0,0.18)]"
+          style={{ maxWidth }}
+          data-testid={`${testId}-page`}
         >
           <rect width={layout.pageWidth} height={layout.pageHeight} fill="#ffffff" />
           {p.ops.map((op, j) => (

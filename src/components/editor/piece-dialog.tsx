@@ -10,6 +10,8 @@ import { Dialog, DialogBody, DialogContent, DialogFooter } from "@/components/ui
 import { Field } from "@/components/ui/label";
 import { Input, Select } from "@/components/ui/input";
 import { NumberInput } from "@/components/ui/number-input";
+import { CmInput } from "@/components/ui/length-input";
+import { formatCm } from "@/lib/units";
 import { Switch } from "@/components/ui/switch";
 import { newId } from "@/lib/utils";
 
@@ -85,7 +87,7 @@ export function PieceDialog({ open, onOpenChange, initial, isNew, materials, tap
     const canRotate = p.allowRotation && !mat.grainRequired;
     const fits = (p.lengthMm <= uw && p.widthMm <= uh) || (canRotate && p.widthMm <= uw && p.lengthMm <= uh);
     if (!fits) {
-      fitWarning = `Esta peça não cabe na área útil da chapa (${formatNumber(uw, 0)} × ${formatNumber(uh, 0)} mm)${
+      fitWarning = `Esta peça não cabe na área útil da chapa (${formatCm(uw)} × ${formatCm(uh)} cm)${
         mat.grainRequired ? " — material com veio não permite girar" : !p.allowRotation ? " — a rotação está desativada" : ""
       }.`;
     }
@@ -149,15 +151,15 @@ export function PieceDialog({ open, onOpenChange, initial, isNew, materials, tap
 
           <div className="grid grid-cols-2 gap-3">
             <Field
-              label="Comprimento"
-              hint={mat?.grainRequired ? "Segue o veio" : undefined}
+              label="Comprimento (cm)"
+              hint={mat?.grainRequired ? "Segue o veio" : "Aceita 60,5 ou 60.5"}
               error={touched ? errors.lengthMm : undefined}
               htmlFor="pc-len"
             >
-              <NumberInput id="pc-len" value={p.lengthMm || null} onChange={(v) => set("lengthMm", v ?? 0)} suffix="mm" placeholder="1800" />
+              <CmInput id="pc-len" mm={p.lengthMm || null} onChangeMm={(v) => set("lengthMm", v ?? 0)} placeholder="180" />
             </Field>
-            <Field label="Largura" error={touched ? errors.widthMm : undefined} htmlFor="pc-wid">
-              <NumberInput id="pc-wid" value={p.widthMm || null} onChange={(v) => set("widthMm", v ?? 0)} suffix="mm" placeholder="600" />
+            <Field label="Largura (cm)" error={touched ? errors.widthMm : undefined} htmlFor="pc-wid" hint="Aceita 60,5 ou 60.5">
+              <CmInput id="pc-wid" mm={p.widthMm || null} onChangeMm={(v) => set("widthMm", v ?? 0)} placeholder="60" />
             </Field>
           </div>
 
@@ -201,7 +203,7 @@ export function PieceDialog({ open, onOpenChange, initial, isNew, materials, tap
               {EDGE_SIDES.map((side) => (
                 <Field
                   key={side}
-                  label={`${SIDE_LABEL[side]} · ${p.lengthMm > 0 && p.widthMm > 0 ? formatNumber(edgeLengthMm(p, side), 0) : "—"} mm`}
+                  label={`${SIDE_LABEL[side]} · ${p.lengthMm > 0 && p.widthMm > 0 ? formatCm(edgeLengthMm(p, side)) : "—"} cm`}
                 >
                   <Select
                     aria-label={`Fita da borda ${SIDE_LABEL[side].toLowerCase()}`}

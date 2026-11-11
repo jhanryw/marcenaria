@@ -36,9 +36,22 @@ export const COLORS = {
 } as const;
 
 export type Op =
-  | { t: "text"; x: number; y: number; text: string; font: FontKey; size: number; color: string; width: number; justify?: boolean; align?: "left" | "center" | "right" }
-  | { t: "rect"; x: number; y: number; w: number; h: number; fill?: string; stroke?: string; strokeWidth?: number }
-  | { t: "line"; x1: number; y1: number; x2: number; y2: number; color: string; width: number }
+  | {
+      t: "text";
+      x: number;
+      y: number;
+      text: string;
+      font: FontKey;
+      size: number;
+      color: string;
+      width: number;
+      justify?: boolean;
+      align?: "left" | "center" | "right";
+      /** Graus no sentido anti-horário (90 = texto subindo). Ponto (x, y) = início da linha de base. Só com align "left". */
+      rotate?: number;
+    }
+  | { t: "rect"; x: number; y: number; w: number; h: number; fill?: string; stroke?: string; strokeWidth?: number; dash?: [number, number]; tag?: string }
+  | { t: "line"; x1: number; y1: number; x2: number; y2: number; color: string; width: number; dash?: [number, number] }
   | { t: "image"; x: number; y: number; w: number; h: number; dataUrl: string }
   | { t: "watermark"; text: string };
 
